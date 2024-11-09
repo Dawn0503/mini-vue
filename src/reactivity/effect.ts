@@ -11,7 +11,7 @@ class ReactiveEffect{
     // 这步让activeEffect 等于 ReactiveEffect
     activeEffect = this
    
-    this._fn()
+    return  this._fn()
   }
 }
 
@@ -48,4 +48,5 @@ export function effect(fn) {
   // 接收一个fn，并立即调用
   const _effect = new ReactiveEffect(fn)
   _effect.run()
+  return _effect.run.bind(_effect)
 }
