@@ -35,4 +35,33 @@ describe('effect', () => {
     expect(foo).toBe(12)
     expect(r).toBe("foo")
   });
+  it("scheduler", () => {
+    // 1.通过 effect 的第二个参数给定的一个 scheduler 的fn
+    // 2.effect 第一次执行的时候 还会执行fn
+    // 3.当响应式对象 set  update时 不会执行 fn， 而是执行 scheduler
+    // 4.如果说当执行 runner 的时候，会再次执行 fn
+    let dummy;
+    let run: any;
+    const scheduler = jest.fn(() => {
+      // runner就是 effect返回出来的 function
+      run = runner;
+    })
+    const obj = reactive({ foo: 1 });
+    const runner = effect(
+      () => {
+        dummy = obj.foo
+      },
+      { scheduler }
+    );
+    expect(scheduler).not.toHaveBeenCalled();
+    expect(dummy).toBe(1)
+    obj.foo++
+    // 说明响应式对象的值发生改变不会调用 effect 而是调用里面的 scheduler
+    //并且此时 dummy 的值还是没有改变
+    expect(scheduler).toHaveBeenCalledTimes(1)
+    expect(dummy).toBe(1)
+    // 执行run 说明 effect里的函数被调用
+    run()
+    expect(dummy).toBe(2)
+  })
 })
