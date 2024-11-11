@@ -95,7 +95,7 @@ describe('effect', () => {
       }
     )
     stop(runner);
-    expect(onStop).toHaveBeenCalledTimes(1)
+    expect(onStop).toBeCalledTimes(1)
   })
 })
 

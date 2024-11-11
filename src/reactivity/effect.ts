@@ -23,7 +23,8 @@ class ReactiveEffect {
       // 删除effect
       cleanupEffect(this)
       if (this.onStop) {
-        this.onStop
+        // 是这一步没有执行，所以在effect的 toBeCalledTimes 单元测试中报错
+        this.onStop();
       }
       this.active = false
     }
@@ -49,7 +50,8 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep)
   }
-
+  // 如果只是一个单纯的 reactive 获取的话，就不会有 activeEffect。
+  // activeEffect 是在 effect 的中才会有。也就是定义的类的run函数里边产生。
   if(!activeEffect) return;
   
   // const dep = new Set()
