@@ -1,4 +1,4 @@
-import { mutableHandles, readonlyHandles } from "./baseHandler";
+import { mutableHandles, readonlyHandles, shallowReadonlyHandlers } from "./baseHandler";
 import { track, trigger } from "./effect";
 
 // 枚举处理
@@ -21,6 +21,10 @@ export function readonly(raw) {
   return createActiveObject(raw, readonlyHandles)
 }
 
+
+export function shallowReadonly(raw) {
+  return createActiveObject(raw,shallowReadonlyHandlers)
+}
 
 export function isReactive(value) {
   return !!value[ReactiveFlags.IS_REACTIVE]
