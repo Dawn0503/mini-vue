@@ -1,5 +1,7 @@
 import { extend } from "../shared"
 
+let activeEffect;
+let shouldTrack;
 class ReactiveEffect {
   private _fn: any;
   deps = []
@@ -11,10 +13,19 @@ class ReactiveEffect {
   }
   // 调用 run 方法, 执行内部 fn
   run() {
+    // 调用 run 时会收集依赖，为了防止让它再次收集被 stop 删除的依赖
+    //  所以用 shouldTrack 来判断是否执行track
+    if(!this.active) {
+      // 如果 this.active 是 false 则直接调用 fn
+      return this._fn()
+    }
+    shouldTrack = true;
     // 这步让activeEffect 等于 ReactiveEffect
-    activeEffect = this
+    activeEffect = this;
+    const result =  this._fn()
+    shouldTrack = false
 
-    return this._fn()
+    return result;
   }
   stop() {
     // 给个active状态
@@ -34,10 +45,12 @@ function cleanupEffect(effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect)
   })
+  effect.deps.length = 0;
 }
 
 const targetMap = new Map()
 export function track(target, key) {
+  if(!isTracking()) return;
   // 映射关系：  target -> key -> dep
   let depsMap = targetMap.get(target)
   if (!depsMap) {
@@ -50,10 +63,17 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep)
   }
-  // 如果只是一个单纯的 reactive 获取的话，就不会有 activeEffect。
+
+  function isTracking () {
+    return shouldTrack && activeEffect !== undefined
+/*   // 如果只是一个单纯的 reactive 获取的话，就不会有 activeEffect。
   // activeEffect 是在 effect 的中才会有。也就是定义的类的run函数里边产生。
   if(!activeEffect) return;
-  
+  if(!shouldTrack) return; */
+  }
+  // 如果dep有activeeffect 就直接return 无需再次收集依赖
+  if(dep.has(activeEffect)) return;
+
   // const dep = new Set()
   dep.add(activeEffect)                   // activeEffect 可能是 undifined ，所以 deps 可能会找不到他
   activeEffect.deps.push(dep)
@@ -72,7 +92,6 @@ export function trigger(target, key) {
   }
 }
 
-let activeEffect;
 export function effect(fn, options: any = {}) {
   // 接收一个fn，并立即调用
   const scheduler = options.scheduler
