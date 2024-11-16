@@ -15,14 +15,14 @@ class ReactiveEffect {
   run() {
     // 调用 run 时会收集依赖，为了防止让它再次收集被 stop 删除的依赖
     //  所以用 shouldTrack 来判断是否执行track
-    if(!this.active) {
+    if (!this.active) {
       // 如果 this.active 是 false 则直接调用 fn
       return this._fn()
     }
     shouldTrack = true;
     // 这步让activeEffect 等于 ReactiveEffect
     activeEffect = this;
-    const result =  this._fn()
+    const result = this._fn()
     shouldTrack = false
 
     return result;
@@ -50,7 +50,7 @@ function cleanupEffect(effect) {
 
 const targetMap = new Map()
 export function track(target, key) {
-  if(!isTracking()) return;
+  if (!isTracking()) return;
   // 映射关系：  target -> key -> dep
   let depsMap = targetMap.get(target)
   if (!depsMap) {
@@ -63,26 +63,36 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep)
   }
+  trackEffects(dep)
+}
 
-  function isTracking () {
-    return shouldTrack && activeEffect !== undefined
-/*   // 如果只是一个单纯的 reactive 获取的话，就不会有 activeEffect。
-  // activeEffect 是在 effect 的中才会有。也就是定义的类的run函数里边产生。
-  if(!activeEffect) return;
-  if(!shouldTrack) return; */
-  }
+export function trackEffects(dep) {
+
   // 如果dep有activeeffect 就直接return 无需再次收集依赖
-  if(dep.has(activeEffect)) return;
+  if (dep.has(activeEffect)) return;
 
   // const dep = new Set()
-  dep.add(activeEffect)                   // activeEffect 可能是 undifined ，所以 deps 可能会找不到他
+  dep.add(activeEffect)                   
+  // activeEffect 可能是 undifined ，所以 deps 可能会找不到他
   activeEffect.deps.push(dep)
 }
 
+export function isTracking() {
+  return shouldTrack && activeEffect !== undefined
+  /*   // 如果只是一个单纯的 reactive 获取的话，就不会有 activeEffect。
+  // activeEffect 是在 effect 的中才会有。也就是定义的类的run函数里边产生。
+  if(!activeEffect) return;
+  if(!shouldTrack) return; */
+}
 export function trigger(target, key) {
   let depsMap = targetMap.get(target)
   // 取出 deps 等于 depssMap.get(key)
   let dep = depsMap.get(key)
+  // 触发依赖
+  triggerEffects(dep)
+}
+
+export function  triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler()
@@ -91,14 +101,13 @@ export function trigger(target, key) {
     }
   }
 }
-
 export function effect(fn, options: any = {}) {
   // 接收一个fn，并立即调用
   const scheduler = options.scheduler
   const _effect = new ReactiveEffect(fn, scheduler)
-  Object.assign(_effect,options)
+  Object.assign(_effect, options)
   //extend
-  extend(_effect,options)
+  extend(_effect, options)
   _effect.onStop = options.onStop
 
   _effect.run()

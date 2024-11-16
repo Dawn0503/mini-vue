@@ -1,4 +1,4 @@
-import { isReactive, reactive } from "../reactive";
+import { isReactive, reactive, isProxy } from "../reactive";
 describe('reactive', () => {
   it('happy path', ()=> {
     const original = {foo: 1}
@@ -6,6 +6,9 @@ describe('reactive', () => {
     expect(observed).not.toBe(original);
     expect(observed.foo).toBe(1);
     expect(isReactive(observed)).toBe(true)
+    // isProxy 是检验是不是由 reactive 和 readonly 形成的代理对象
+    expect(isProxy(observed)).toBe(true)
+
   });
 
   it("nest reactive",() => {
