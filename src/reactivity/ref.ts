@@ -10,6 +10,7 @@ class RefImpl {
   private _rawValue: any
   // 只有一个 value  也就是只对应一个value
   public dep
+  public __v_ifRef = true
   constructor(value) {
     this._rawValue = value
     // 如果是对象就要用 reactive 包裹，所有的响应式对象都要用 reactive 处理
@@ -46,4 +47,13 @@ function trackRefValue (ref) {
   if (isTracking()) {
     trackEffects(ref.dep)
   }
+}
+
+export function isRef(ref){
+  return !!ref.__v_isRef  // 如果是 1 就是一个 undifined， 所以要给它转换成布尔值
+}
+
+export function unRef(ref){
+  // 是否为 ref 对象，如果是则返回 ref.value  ，不是则返回值即可
+  return isRef(ref) ? ref.value :ref;
 }

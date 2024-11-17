@@ -72,7 +72,7 @@ export function trackEffects(dep) {
   if (dep.has(activeEffect)) return;
 
   // const dep = new Set()
-  dep.add(activeEffect)                   
+  dep.add(activeEffect)
   // activeEffect 可能是 undifined ，所以 deps 可能会找不到他
   activeEffect.deps.push(dep)
 }
@@ -92,7 +92,7 @@ export function trigger(target, key) {
   triggerEffects(dep)
 }
 
-export function  triggerEffects(dep) {
+export function triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler()
@@ -101,6 +101,7 @@ export function  triggerEffects(dep) {
     }
   }
 }
+
 export function effect(fn, options: any = {}) {
   // 接收一个fn，并立即调用
   const scheduler = options.scheduler
