@@ -1,31 +1,68 @@
-import { createComponentInstance, setupCompoent } from "./component"
-export function render(vnode,container){
+import { isObject } from "../shared/index";
+import { createComponentInstance, setupComponent } from "./component"
+export function render(vnode, container) {
 
   // patch
-  // 
-  patch(vnode,container)
+  patch(vnode, container)
 }
-function patch(vnode,container) {
+function patch(vnode, container) {
 
-  // 处理组件
-  // processElement()
+  // 处理组件，判断 vnode 是 element 还是 component
+  console.log(vnode.type);
+  if (typeof vnode.type === "string") {
 
-  // 判断是否为 element 类型
-  processComponent(vnode,container)
+    processElement(vnode, container)
+  } else if (isObject(vnode.type)) {
+
+    processComponent(vnode, container)
+  }
 }
 
 function processComponent(vnode: any, container: any) {
-  mountComponent(vnode,container)
+  mountComponent(vnode, container)
 
 }
-function mountComponent(vnode: any,container) {
+
+
+function processElement(vnode: any, container: any) {
+  mountElement(vnode, container)
+}
+function mountElement(vnode: any, container: any) {
+  const el = document.createElement(vnode.type)
+  const {children} = vnode
+  // children
+  if(typeof children === "string") {
+    el.textContent = children
+  } else if(Array.isArray(children)){
+    // vnode
+    mountChildren(vnode,el)
+  }
+  // el.textContent = children        此处若存在则会覆盖之前设置的内容,故显示[object Object]
+  const {props} = vnode
+  for (const key in props) {
+    const val = props[key]
+    el.setAttribute(key,val)
+  } 
+  container.append(el)
+  // el.setAttribute("id", "root")
+  // document.body.append(el)
+}
+function mountChildren(vnode: any, container: any) {
+  vnode.children.forEach((v) => {
+    patch(v, container)
+  })
+}
+
+
+function mountComponent(vnode: any, container) {
   const instance = createComponentInstance(vnode)
-  setupCompoent(instance)
-  setupRenderEffect(instance,container)
+  setupComponent(instance)
+  setupRenderEffect(instance, container)
 }
 
-function setupRenderEffect(instance: any,container){
+function setupRenderEffect(instance: any, container) {
   const subTree = instance.render()
-  patch(subTree,container)
+  patch(subTree, container)
 }
+
 
