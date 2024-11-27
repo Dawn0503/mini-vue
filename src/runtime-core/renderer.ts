@@ -28,21 +28,22 @@ function processElement(vnode: any, container: any) {
   mountElement(vnode, container)
 }
 function mountElement(vnode: any, container: any) {
-  const el = document.createElement(vnode.type)
-  const {children} = vnode
+  // 此处的虚拟节点是属于 element 类型的，也就是 App.js 的 div
+  const el = (vnode.el = document.createElement(vnode.type))
+  const { children } = vnode
   // children
-  if(typeof children === "string") {
+  if (typeof children === "string") {
     el.textContent = children
-  } else if(Array.isArray(children)){
+  } else if (Array.isArray(children)) {
     // vnode
-    mountChildren(vnode,el)
+    mountChildren(vnode, el)
   }
   // el.textContent = children        此处若存在则会覆盖之前设置的内容,故显示[object Object]
-  const {props} = vnode
+  const { props } = vnode
   for (const key in props) {
     const val = props[key]
-    el.setAttribute(key,val)
-  } 
+    el.setAttribute(key, val)
+  }
   container.append(el)
   // el.setAttribute("id", "root")
   // document.body.append(el)
@@ -57,12 +58,18 @@ function mountChildren(vnode: any, container: any) {
 function mountComponent(vnode: any, container) {
   const instance = createComponentInstance(vnode)
   setupComponent(instance)
-  setupRenderEffect(instance, container)
+  setupRenderEffect(instance, vnode, container)
 }
 
-function setupRenderEffect(instance: any, container) {
-  const subTree = instance.render()
+function setupRenderEffect(instance: any, vnode, container) {
+  // 将代理对象取出并绑定
+  const { proxy } = instance
+  const subTree = instance.render.call(proxy)
   patch(subTree, container)
+  // 所有 element 都已 mount
+  vnode.el = subTree.el
+
 }
+
 
 
