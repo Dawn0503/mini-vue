@@ -1,3 +1,4 @@
+import { ShapeFlags } from "../shared/ShapeFlags";
 import { isObject } from "../shared/index";
 import { createComponentInstance, setupComponent } from "./component"
 export function render(vnode, container) {
@@ -9,11 +10,11 @@ function patch(vnode, container) {
 
   // 处理组件，判断 vnode 是 element 还是 component
   console.log(vnode.type);
-  if (typeof vnode.type === "string") {
+  const { ShapeFlag } = vnode
+  if (ShapeFlag & ShapeFlags.ELEMENT) {
 
     processElement(vnode, container)
-  } else if (isObject(vnode.type)) {
-
+  } else if (ShapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     processComponent(vnode, container)
   }
 }
@@ -30,11 +31,11 @@ function processElement(vnode: any, container: any) {
 function mountElement(vnode: any, container: any) {
   // 此处的虚拟节点是属于 element 类型的，也就是 App.js 的 div
   const el = (vnode.el = document.createElement(vnode.type))
-  const { children } = vnode
+  const { ShapeFlag, children } = vnode
   // children
-  if (typeof children === "string") {
+  if (ShapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children
-  } else if (Array.isArray(children)) {
+  } else if (ShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
     // vnode
     mountChildren(vnode, el)
   }
