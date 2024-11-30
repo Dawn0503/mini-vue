@@ -9,7 +9,13 @@ export const App = {
       {
         id: "root",
         // 元素类型
-        class: ["red", "hard"]
+        class: ["red", "hard"],
+        onClick() {
+          console.log("click");
+        },
+        onMousedown() {
+          console.log("mounsedown");
+        }
       },
       // setupState
       "hi," + this.msg
