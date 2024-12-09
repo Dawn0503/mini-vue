@@ -4,47 +4,16 @@ window.self = null
 export const App = {
   name: "App",
   render() {
-    // emit
-    return h("div", {}, [h("div", {}, "App"), h(Foo, {
-      onAdd(a, b) {
-        console.log('onAdd', a, b);
-      },
-      // add-foo -> addFoo
-      onAddFoo(){
-        console.log("onAddFoo");
-      }
-    })])
-    /*     
-    window.self = this
-    return h(
-      "div",
-      {
-        id: "root",
-        // 元素类型
-        class: ["red", "hard"],
-        onClick() {
-          console.log("click");
-        },
-        onMousedown() {
-          console.log("mounsedown");
-        }
-      },
-      [
-        h("div", {}, "hi," + this.msg),
-        h(Foo, {
-          count: 1,
-        })]
-    ) */
-    // setupState
-    // "hi," + this.msg
-    // this.$el：返回根节点 root element
-    //数组类型
-    // [h("p", { class: "red" }, "hi"), h("p", { class: "blue" }, "mini-vue")]
+    const app = h("div", {}, "App")
+    const foo = h(Foo, {}, {
+      header: ({age}) => h("p", {}, "header" + age),
+      footer: () => h("p", {}, "footer")
+    })
+    // 数组 vnode
+    // const foo = h(Foo, {}, h("p", {}, "123"))
+    return h("div", {}, [app, foo])
   },
   setup() {
-    return {
-      // 将 setup 中的 msg 的值绑定到 render 函数的 this 上
-      msg: "mini-vue"
-    }
+    return {}
   }
 }
