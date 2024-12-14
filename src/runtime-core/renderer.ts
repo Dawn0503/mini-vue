@@ -1,22 +1,33 @@
 import { ShapeFlags } from "../shared/ShapeFlags";
-import { isObject } from "../shared/index";
 import { createComponentInstance, setupComponent } from "./component"
+import { Fragment, Text } from "./vnode";
 export function render(vnode, container) {
-
   // patch
   patch(vnode, container)
 }
 function patch(vnode, container) {
-
   // 处理组件，判断 vnode 是 element 还是 component
-  console.log(vnode.type);
-  const { ShapeFlag } = vnode
-  if (ShapeFlag & ShapeFlags.ELEMENT) {
-
-    processElement(vnode, container)
-  } else if (ShapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    processComponent(vnode, container)
+  const { type, ShapeFlag } = vnode
+  // Fragment -> 只渲染 children 
+  switch (type) {
+    case Fragment:
+      ProcessFragment(vnode, container)
+      break
+    case Text:
+      ProcessText(vnode, container)
+      break
+    default:
+      if (ShapeFlag & ShapeFlags.ELEMENT) {
+        processElement(vnode, container)
+      } else if (ShapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        processComponent(vnode, container)
+      }
+      break;
   }
+}
+
+function ProcessFragment(vnode: any, container: any) {
+  mountChildren(vnode, container)
 }
 
 function processComponent(vnode: any, container: any) {
@@ -28,6 +39,13 @@ function processComponent(vnode: any, container: any) {
 function processElement(vnode: any, container: any) {
   mountElement(vnode, container)
 }
+
+function ProcessText(vnode: any, container: any) {
+  const { children } = vnode
+  const textNode = (vnode.el = document.createTextNode(children))
+  container.append(textNode)
+}
+
 function mountElement(vnode: any, container: any) {
   // 此处的虚拟节点是属于 element 类型的，也就是 App.js 的 div
   const el = (vnode.el = document.createElement(vnode.type))
@@ -44,10 +62,10 @@ function mountElement(vnode: any, container: any) {
   for (const key in props) {
     console.log(key);
     const val = props[key]
-    const isOn = (key:string) => /^on[A-Z]/.test(key);
-    if(isOn(key)) {
+    const isOn = (key: string) => /^on[A-Z]/.test(key);
+    if (isOn(key)) {
       const event = key.slice(2).toLowerCase()
-      el.addEventListener(event,val)
+      el.addEventListener(event, val)
     } else {
       el.setAttribute(key, val)
     }
@@ -56,7 +74,7 @@ function mountElement(vnode: any, container: any) {
   // el.setAttribute("id", "root")
   // document.body.append(el)
 }
-function mountChildren(vnode: any, container: any) {
+function mountChildren(vnode, container) {
   vnode.children.forEach((v) => {
     patch(v, container)
   })

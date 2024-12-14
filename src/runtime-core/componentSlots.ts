@@ -4,7 +4,13 @@ export function initSlots(instance, children) {
   const { vnode } = instance
   if (vnode.ShapeFlag & ShapeFlags.SLOT_CHILDREN) {
     normalizeObjectSlots(children, instance.slots)
+  } else if(Array.isArray(children)) {
+    normalizeArrSlots(children,instance.slots)
   }
+}
+
+function normalizeArrSlots(children, slots) {
+  slots.default = [children]
 }
 
 function normalizeObjectSlots(children: any, slots: any) {
