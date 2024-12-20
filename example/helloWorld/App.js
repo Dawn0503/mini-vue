@@ -4,10 +4,10 @@ window.self = null
 export const App = {
   name: "App",
   render() {
-    return h("div", {}, [h("p", {}, "currentInstance demo"),h(Foo)])
+    return h("div", {}, [h("p", {}, "currentInstance demo"), h(Foo)])
   },
   setup() {
     const instance = getCurrentInstance()
-    console.log("App",instance);
+    console.log("App", instance);
   }
 }
