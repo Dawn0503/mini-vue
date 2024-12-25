@@ -1,4 +1,4 @@
-import { h } from "../../lib/guide-mini-vue.esm.js"
+import { h,ref } from "../../../lib/guide-mini-vue.esm.js"
 export const App = {
   name: "App",
   setup() {
@@ -12,12 +12,13 @@ export const App = {
     }
   },
   render() {
+    console.log("count",this.count.value);
     return h("div",
       {
         id: "root",
       },
       [
-        h("div", {}, "count:" + this.count),
+        h("div", {}, "count:" + this.count.value),
         h("button", {
           onClick: this.onClick
         }, "click")

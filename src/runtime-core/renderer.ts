@@ -1,3 +1,4 @@
+import { effect } from "../reactivity";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component"
 import { createAppAPI } from "./createApp";
@@ -11,46 +12,57 @@ export function createRenderer(options) {
   } = options
   function render(vnode, container) {
     // patch
-    patch(vnode, container, null)
+    patch(null,vnode, container, null)
   }
-  function patch(vnode, container, parentComponent) {
+  function patch(n1, n2, container, parentComponent) {
     // 处理组件，判断 vnode 是 element 还是 component
-    const { type, ShapeFlag } = vnode
+    const { type, ShapeFlag } = n2
     // Fragment -> 只渲染 children 
     switch (type) {
       case Fragment:
-        ProcessFragment(vnode, container, parentComponent)
+        ProcessFragment(n1,n2, container, parentComponent)
         break
       case Text:
-        ProcessText(vnode, container)
+        ProcessText(n1,n2, container)
         break
       default:
         if (ShapeFlag & ShapeFlags.ELEMENT) {
-          processElement(vnode, container, parentComponent)
+          processElement(n1,n2, container, parentComponent)
         } else if (ShapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-          processComponent(vnode, container, parentComponent)
+          processComponent(n1,n2, container, parentComponent)
         }
         break;
     }
   }
 
-  function ProcessFragment(vnode: any, container: any, parentComponent) {
-    mountChildren(vnode, container, parentComponent)
+  function ProcessFragment(n1:any,n2: any, container: any, parentComponent) {
+    mountChildren(n2, container, parentComponent)
   }
 
-  function processComponent(vnode: any, container: any, parentComponent) {
-    mountComponent(vnode, container, parentComponent)
+  function processComponent(n1:any,n2: any, container: any, parentComponent) {
+    mountComponent(n2, container, parentComponent)
 
   }
 
 
-  function processElement(vnode: any, container: any, parentComponent) {
-    mountElement(vnode, container, parentComponent)
+  function processElement(n1:any,n2: any, container: any, parentComponent) {
+    if(!n1){
+      mountElement(n2, container, parentComponent)
+    }else{
+      patchElement(n1,n2, container)
+    }
   }
 
-  function ProcessText(vnode: any, container: any) {
-    const { children } = vnode
-    const textNode = (vnode.el = document.createTextNode(children))
+  function patchElement(n1:any,n2: any, container: any) {
+    console.log("patchElement");
+    console.log("n1", n1);
+    console.log("n2", n2);
+    
+  }
+
+  function ProcessText(n1:any,n2: any, container: any) {
+    const { children } = n2
+    const textNode = (n2.el = document.createTextNode(children))
     container.append(textNode)
   }
 
@@ -80,7 +92,7 @@ export function createRenderer(options) {
   function mountChildren(vnode, container, parentComponent) {
     vnode.children.forEach((v) => {
       // 对于每个子节点，都创建新的 vnode 并挂载
-      patch(v, container, parentComponent)
+      patch(null,v, container, parentComponent)
     })
   }
 
@@ -92,12 +104,31 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance: any, vnode, container,) {
-    // 将代理对象取出并绑定
-    const { proxy } = instance
-    const subTree = instance.render.call(proxy)
-    patch(subTree, container, instance)
-    // 所有 element 都已 mount
-    vnode.el = subTree.el
+    effect(() => {
+      if(!instance.isMounted){
+        // 将代理对象取出并绑定
+        const { proxy } = instance
+        const subTree = (instance.subTree = instance.render.call(proxy))
+        // subTree 是 vnode 类型 虚拟节点树
+        patch(null,subTree, container, instance)
+        // 所有 element 都已 mount
+        vnode.el = subTree.el
+        instance.isMounted = true
+      }else{
+        // 将代理对象取出并绑定
+        const { proxy } = instance
+        const subTree = instance.render.call(proxy)
+        const prevSubTree = instance.subTree
+        instance.subTree = subTree
+        console.log(prevSubTree,subTree);
+        
+        // subTree 是 vnode 类型 虚拟节点树
+        patch(prevSubTree,subTree, container, instance)
+        // 所有 element 都已 mount
+        // vnode.el = subTree.el
+        // instance.isMounted = true
+      }
+    })
   }
   return {
     createApp: createAppAPI(render)
