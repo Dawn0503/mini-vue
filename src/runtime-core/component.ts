@@ -39,24 +39,10 @@ function setupStatefulCopmonent(instance: any) {
   const { setup } = Component
 
   if (setup) {
-    // 在设置 currentInstance 之前打印
-    console.log("Component name:", Component.name);
-    console.log("Parent:", instance.parent?.type.name);
-    console.log("Current provides:", instance.provides);
-
     setCurrentInstance(instance)
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     })
-    // 在 setup 执行后打印
-    console.log("=== After setup ===");
-    console.log("Setup result:", setupResult);
-    console.log("Instance state:", {
-      name: instance.type.name,
-      setupState: instance.setupState,
-      provides: instance.provides
-    });
-
     handleSetupResult(instance, setupResult)
     setCurrentInstance(null)
   }
@@ -70,11 +56,6 @@ function handleSetupResult(instance, setupResult: any) {
 }
 function finishComponentSetup(instance: any) {
   const Component = instance.type
-  console.log("finishComponentSetup:", {
-    componentName: Component.name,
-    hasRender: !!Component.render,
-    setupState: instance.setupState
-  })
   if (Component.render) {
     instance.render = Component.render
   }

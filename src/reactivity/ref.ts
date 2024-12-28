@@ -10,7 +10,7 @@ class RefImpl {
   private _rawValue: any
   // 只有一个 value  也就是只对应一个value
   public dep
-  public __v_ifRef = true
+  public __v_isRef = true
   constructor(value) {
     this._rawValue = value
     // 如果是对象就要用 reactive 包裹，所有的响应式对象都要用 reactive 处理
